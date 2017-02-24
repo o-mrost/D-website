@@ -1,5 +1,5 @@
 
-var searchBox, source, map, gmarkers, pos, infowindow, markersIds;
+var searchBox, map, gmarkers, pos, infowindow, markersIds;
 
 function initMap() {
 
@@ -12,7 +12,7 @@ function initMap() {
 
     map = new google.maps.Map(document.getElementById('map'), {
         center: pos,
-        zoom: 15,
+        zoom: 14,
         mapTypeControlOptions: {
             style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
             position: google.maps.ControlPosition.TOP_RIGHT
@@ -31,8 +31,6 @@ function initMap() {
 
     showSearchResults();
 
-    source = "original value";
-
     // Try HTML5 geolocation
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function (position) {
@@ -43,15 +41,60 @@ function initMap() {
 
             map.setCenter(pos);
             var userLocation = new google.maps.Marker({ map: map, position: pos });
-            source = "inside if navigator";
+
+            //var circle = document.getElementById("circle");
+
+           /* var markerImage = new google.maps.MarkerImage(
+                //circle,
+                'myIcon.png',
+                new google.maps.Size(10, 10), //size
+                null, //origin
+                null, //anchor
+                new google.maps.Size(10, 10) //scale
+            );
+
+            var userMarker = new google.maps.Marker({
+                position: pos,
+                map: map,
+                icon: markerImage //set the markers icon to the MarkerImage
+            });
+
+            //when the map zoom changes, resize the icon based on the zoom level so the marker covers the same geographic area
+            google.maps.event.addListener(map, 'zoom_changed', function () {
+
+                var pixelSizeAtZoom0 = 2;
+                //the size of the icon at zoom level 0
+                var maxPixelSize = 350;
+                //restricts the maximum size of the icon, otherwise the browser will choke at higher zoom 
+                //levels trying to scale an image to millions of pixels
+
+                var zoom = map.getZoom();
+                var relativePixelSize = Math.round(pixelSizeAtZoom0 * Math.pow(2, zoom));
+                alert("zoom: " + zoom + ", relative pixel size: " + relativePixelSize + ", max pixel size: " + maxPixelSize);
+                // use 2 to the power of current zoom to calculate relative pixel size.  Base of exponent is 2 
+                //because relative size should double every time you zoom in
+
+                if (relativePixelSize > maxPixelSize) //restrict the maximum size of the icon
+                    relativePixelSize = maxPixelSize;
+
+                //change the size of the icon
+                userMarker.setIcon(
+                    new google.maps.MarkerImage(
+                        userMarker.getIcon().url, //marker's same icon graphic
+                        null,//size
+                        null,//origin
+                        null, //anchor
+                        new google.maps.Size(relativePixelSize, relativePixelSize) //changes the scale
+                    )
+                );
+            });*/
 
             // update info on hydrants depending on the map position
             map.addListener('idle', getCenterAndMakeRequest);
 
         }, function () {
             alert("user disabled geolocation");
-            source = " after comma in navigator geolocation";
-            makeServerRequest(pos.lat, pos.lng, source);
+            makeServerRequest(pos.lat, pos.lng);
 
             // update info on hydrants depending on the map position
             map.addListener('idle', getCenterAndMakeRequest);
@@ -60,8 +103,7 @@ function initMap() {
     } else {
         // if browser doesn't support Geolocation
         handleLocationError(false, map.getCenter());
-        source = "else";
-        makeServerRequest(pos.lat, pos.lng, source);
+        makeServerRequest(pos.lat, pos.lng);
     }
 }
 
@@ -73,12 +115,11 @@ function handleLocationError(browserHasGeolocation, pos) {
 
 function getCenterAndMakeRequest() {
     var c = map.getCenter();
-    source = "idle map listener with no geolocation";
-    makeServerRequest(c.lat(), c.lng(), source);
+    makeServerRequest(c.lat(), c.lng());
 }
 
-function makeServerRequest(mylat, mylong, source) {
-    
+function makeServerRequest(mylat, mylong) {
+
     iconBase = 'Icons_small/';
 
     /*OverCorridorHydrant   - 0
@@ -165,7 +206,7 @@ function parseJsonResponse() {
             markersIds = [];
 
             var beginning;
-            var end = "</b> in this map area. " + "<br />" + "Zoom in or enter an address to display single locations";
+            var end = "</b> in this map area. " + "Zoom in or enter an address to display single locations";
             if (count == 1) {
                 beginning = "There is " + " <b>" + count + " water intake";
             } else {
